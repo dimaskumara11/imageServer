@@ -1,0 +1,1 @@
+<link rel="stylesheet" href="{THEMES_PAGE}/assets/plugins/datatables/dataTables.bootstrap.min.css">
