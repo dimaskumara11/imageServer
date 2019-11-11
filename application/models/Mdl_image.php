@@ -42,16 +42,20 @@ class Mdl_image extends CI_Model
         {
             $data_request[$row]['nomor'] = $row+1;
 
-            $data_request[$row]['image_file_all'] = '<a class="label label-warning" href="">Show Ori</a><br>';
-
-            $thumb = $this->db->select('image_thumbnail_name')->where('image_file_id',$value['image_file_id'])->get($this->table['thumb'])->result_array();
+            $thumb = $this->db->select('image_thumbnail_size,image_file_id')->where('image_file_id',$value['image_file_id'])->get($this->table['thumb'])->result_array();
             if(!empty($thumb))
             {
-                $data_request[$row]['image_thumb'] = '<img src="'.$thumb[0]['image_thumbnail_name'].'" width="100" height="100">';
+
                 foreach($thumb as $row1 => $value1)
                 {
-                    $num = $row1+1;
-                    $data_request[$row]['image_file_all'] .= '<a class="label label-warning" href="">Show Thumb '.$num.'</a><br>';
+                    if($row1==0)
+                    {
+                        $data_request[$row]['image_file_all']   = '<a target="_blank" href="'.base_url('MyImage/show/').'ori/img'.$value1['image_file_id'].'.jpg" class="label label-warning" href="">Show Ori</a><br>';
+                        $data_request[$row]['image_thumb']      = '<img src="'.base_url('MyImage/show/').'ori/img'.$value1['image_file_id'].'.jpg" width="100" height="100">';
+                    }else
+                    {
+                        $data_request[$row]['image_file_all'] .= '<a target="_blank" href="'.base_url('MyImage/show/').$value1['image_thumbnail_size'].'/img'.$value1['image_file_id'].'.jpg" class="label label-warning" href="">Show Thumb '.$row1.'</a><br>';
+                    }
                 }
             }
             else
@@ -66,33 +70,70 @@ class Mdl_image extends CI_Model
         return $data;
     }
 
-    function getDetail($id = 0)
+    function getDetail($size="", $id = "")
     {
         $data =  $this->db->join($this->table['image'],$this->table['image'].'.image_file_id ='.$this->table['thumb'].'.image_file_id','left')
-        ->where('image_thumbnail_id',$id)
+        ->where($this->table['thumb'].'.image_file_id',$id)
+        ->where('image_thumbnail_size',$size)
         ->get($this->table['thumb'])->row_array();
 
-        $img = base_url('/images/').$data['image_file_title'].'/thumbnail/'.$data['image_thumbnail_name'];
+        if($size != "ori")
+        {
+            $fileName = $data['image_file_name'];
+            $fileName = explode('.',$fileName);
+            $data['image_file_name'] = $fileName[0].'_thumb.'.$fileName[1];
+        }
 
+        $img = base_url("/images/").$data['image_file_title']."/$size/".$data['image_file_name'];
         return $img;
     }
 
-    function insertImageThumb($data=array())
+    function getThumbImage($id = "")
     {
-        $res = $this->db->set($data)->insert($this->table['thumb']);
+        $data =  $this->db->join($this->table['image'],$this->table['image'].'.image_file_id ='.$this->table['thumb'].'.image_file_id','left')
+        ->where($this->table['thumb'].'.image_file_id',$id)
+        ->get($this->table['thumb'])->result();
+        
+        $dataCache = array();
+        foreach($data as $key => $val)
+        {
+            $dataCache[$val->image_file_id][$val->image_thumbnail_size] = "/$val->image_file_title/".$val->image_thumbnail_size.'/'.$val->image_file_name;
+        }
+        
+        $res = array(
+            'id' => $val->image_file_id,
+            'data' => $dataCache
+        );
         return $res;
+    }
+
+    function insertImageThumb($data=array(),$data2="")
+    {
+        $cekImageID = $this->db->where(array(
+            'image_file_name' => $data2
+        ))->get($this->table['image'])->row_array();
+
+        $cekImage = array(
+            'image_file_id' => empty($cekImageID['image_file_id'])?0:$cekImageID['image_file_id']
+        );
+
+        $data = array_merge($cekImage,$data);
+        $res = $this->db->set($data)->insert($this->table['thumb']);
+
+        return empty($cekImageID['image_file_id'])?0:$cekImageID['image_file_id'];
     }
 
     function insertImage($data=array(), $data2=array())
     {
         $dataInput = array(
-            'image_file_title' => $data['folder'],
-            'update_by'        => $data['updateBy']
+            'image_file_title'  => $data['folder'],
+            'image_file_name'   => $data['name'],
+            'updated_by'        => $data['updateBy']
         );
-        $res = $this->db->set($data)->insert($this->table['image']);
-        $this->insertImageThumb($data2);
+        $insertImageFile    = $this->db->set($dataInput)->insert($this->table['image']);
+        $insertThumb        = $this->insertImageThumb($data2,$data['name']);
 
-        return $res;
+        return $insertThumb;
     }
     
 }

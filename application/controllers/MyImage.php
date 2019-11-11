@@ -14,17 +14,26 @@ class MyImage extends CI_Controller
         echo "Not Found";
     }
 
-	public function show($id=0)
+	public function show($size="",$id=0)
 	{
-		$cekImage = $this->Mdl_image->getDetail($id);
-		if(empty($cekImage))
-		{
-			echo "not found";
-		}
-		else
-		{
+        $this->load->driver('cache', array('adapter' => 'apc', 'backup' => 'file'));
+        $id = explode('.',$id);
+		$idImage = explode('img',empty($id[0])?0:$id[0]);
+		
+        if ($dataCache = $this->cache->get( empty($idImage[1])?0: $idImage[1]))
+        {
+			$cekImage = base_url().'images'.$dataCache[$idImage[1]][$size];
 			header("Content-type: image/jpeg");
 			echo file_get_contents("$cekImage");
-		}
+        }
+        else
+        {
+			$cekImage 	= $this->Mdl_image->getDetail($size,empty($idImage[1])?0: $idImage[1]);
+
+			$dataCache 	= $this->Mdl_image->getThumbImage(empty($idImage[1])?0: $idImage[1]);
+			$this->cache->save($dataCache['id'], $dataCache['data'], 300);
+			header("Content-type: image/jpeg");
+			echo file_get_contents("$cekImage");
+        }
     }
 }

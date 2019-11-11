@@ -58,22 +58,28 @@ class Form extends CI_Controller
         {
             echo "file belum di masukkan";
         }
-        elseif(file_exists(APPPATH."/../images/".$post['folderImage']."/".$_FILES['image_file']['name']))
-        {
-            echo "filename sudah ada";
-        }
         else
         {
             $folderImage = $post['folderImage'];
-            $path = './images/'.$folderImage.'/';
+            $path = './images/'.$folderImage.'/ori';
+
+            @mkdir("./images/$folderImage", 0777, true);
             @mkdir($path, 0777,TRUE);
             $dt_file = '<!DOCTYPE html><html><head><title>403 Forbidden</title></head><body><p>Directory access is forbidden.</p></body></html>';
-            if(!file_exists($path.'index.html'))
+            if(!file_exists('./images/'.$folderImage.'/index.html'))
             {
-                $fh = fopen($path.'index.html', 'w+');
-                fwrite($fh, $dt_file);
+                $fp = fopen('./images/'.$folderImage.'/index.html',"wb");
+                fwrite($fp,$dt_file);
+                fclose($fp);
             }
-            $config['upload_path']          = $path.'ori';
+            if(!file_exists($path.'/index.html'))
+            {
+                $fh = fopen($path.'/index.html', 'wb');
+                fwrite($fh, $dt_file);
+                fclose($fh);
+            }
+            $config['upload_path']          = $path;
+            $config['file_name']            = date('Ymd_s').'_'.$_FILES['image_file']['name'];
             $config['allowed_types']        = 'jpeg|jpg|png';
             $config['max_size']             = 3000;
             $config['max_width']            = 2000;
@@ -95,53 +101,61 @@ class Form extends CI_Controller
                 $inputData = array(
                     'updateBy' => $updateBy,
                     'folder'   => $folderImage,
+                    'name'     => $data['upload_data']['file_name'],
                 );
 
                 $inputData2 = array(
                     'image_thumbnail_size' => "ori",
-                    'image_thumbnail_type' => 0,
-                    'image_thumbnail_name' => $_FILES['image_file']['name'],
+                    'image_thumbnail_type' => 1,
                 );
                 
-                $this->Mdl_image->insertImage($inputData,$inputData2);
+                $imageFileID = $this->Mdl_image->insertImage($inputData,$inputData2);
+                
+                $imageSize = array(
+                        'ori' => "/$folderImage/ori/".$data['upload_data']['file_name'],
+                );
 
                 foreach($size as $key => $val):
-                    $Newpath = './images/'.$folderImage.'/thumbnail/';
+                    $Newpath = './images/'.$folderImage.'/'.$val->size_thumbnail_width.'x'.$val->size_thumbnail_height;
                     @mkdir($Newpath, 0777,TRUE);
-                    if(!file_exists($Newpath.'index.html'))
+                    if(!file_exists($Newpath.'/index.html'))
                     {
-                        $fh = fopen($Newpath.'index.html', 'w+');
+                        $fh = fopen($Newpath.'/index.html', 'w+');
                         fwrite($fh, $dt_file);
                     }
 
                     $iconfig['image_library']    = 'gd2';
-                    $iconfig['source_image']     = $path.$_FILES['image_file']['name'];
+                    // $iconfig['source_image']     = $path.'/'.$_FILES['image_file']['name'];
+                    $iconfig['source_image']     = $data['upload_data']['full_path'];
                     $iconfig['create_thumb']     = TRUE;
                     $iconfig['maintain_ratio']   = TRUE;
                     $iconfig['width']            = $val->size_thumbnail_width;
                     $iconfig['height']           = $val->size_thumbnail_height;
                     $iconfig['quality']          = "100%";
-                    $iconfig['new_image']        = $Newpath.'/'.$_FILES['image_file']['name'];
+                    $iconfig['new_image']        = $Newpath.'/'.$data['upload_data']['file_name'];
                     
                     $this->load->library('image_lib');
                     $this->image_lib->initialize($iconfig);
                     $this->image_lib->resize();
+                    $inputData2 = array(
+                        'image_thumbnail_size' => $val->size_thumbnail_width.'x'.$val->size_thumbnail_height,
+                        'image_thumbnail_type' => 0,
+                    );
                     
-                    if()
-                    {
+                    $this->Mdl_image->insertImageThumb($inputData2,$data['upload_data']['file_name']);
 
-                    }
-                    else
-                    {
-                        $inputData2 = array(
-                            'image_thumbnail_size' => $val->size_thumbnail_width.'x'.$val->size_thumbnail_height,
-                            'image_thumbnail_type' => 0,
-                            'image_thumbnail_name' => $_FILES['image_file']['name'],
-                        );
-                        
-                        $this->Mdl_image->insertImageThumb($inputData);
-                    }
+                    $imageSize[$val->size_thumbnail_width.'x'.$val->size_thumbnail_height] =  "/$folderImage/".$val->size_thumbnail_width.'x'.$val->size_thumbnail_height.'/'.$data['upload_data']['file_name'];
+                    
                 endforeach;
+                
+                $dataCache = array(
+                    $imageFileID => $imageSize
+                );
+
+                $this->load->driver('cache', array('adapter' => 'apc', 'backup' => 'file'));
+
+                // Save into the cache for 5 minutes
+                $this->cache->save($imageFileID, $dataCache, 300);
 
                 echo "sukses";
             }
