@@ -57,4 +57,32 @@ class Show extends CI_Controller
         );
         echo json_encode($data);
     }
+
+    public function showImage($id)
+    {
+        $data = array(
+            'PAGE_TITLE'    => 'List Image',
+            'BASE_URL'      => base_url(), //tanpa file
+            'SITE_URL'      => site_url(),  //index.php
+			'THEMES_PAGE'   => base_url('themes'),
+			'REQUEST_AJAX_LIST' => site_url("image/show/getList"),
+            'MODE_LAYOUT'   	=> 'hold-transition skin-blue fixed sidebar-mini',  
+            'IMG'           => $this->Mdl_image->showImageAll($id),            
+        );
+        
+        $data['MENU_TOP']       = $this->parser->parse('layout/menu/menu_top', $data, true);
+        $data['HEADER_SECTION'] = $this->parser->parse('layout/header/header_fixed', $data, true);
+        $data['HEADER_SECTION'].= $this->parser->parse('layout/menu/sidebar', $data, true);
+        
+        $data['CONTENT_SECTION'] = $this->parser->parse('layout/header/breadcrumb', $data, true);
+        $data['CONTENT_SECTION'].= $this->parser->parse('layout/list/showImage', $data, true);
+		$data['BODY_SECTION']	 = $this->parser->parse('layout/content/body_layout', $data, true);
+		
+		$data['ADD_PLUGIN_CSS']	 = $this->parser->parse('layout/css/datatable_css', $data, true);
+		$data['ADD_PLUGIN_JS']	 = $this->parser->parse('layout/js/datatable_js', $data, true);
+        
+        $data['FOOTER_SECTION']	 = $this->parser->parse('layout/footer/footer', $data, true);
+        
+        $this->parser->parse('layout/main_layout', $data);
+    }
 }

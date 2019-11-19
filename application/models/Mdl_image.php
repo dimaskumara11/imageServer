@@ -42,25 +42,15 @@ class Mdl_image extends CI_Model
         {
             $data_request[$row]['nomor'] = $row+1;
 
-            $thumb = $this->db->select('image_thumbnail_size,image_file_id')->where('image_file_id',$value['image_file_id'])->get($this->table['thumb'])->result_array();
+            $thumb = $this->db->select('image_thumbnail_size,image_file_id')->where('image_file_id',$value['image_file_id'])->get($this->table['thumb'])->row_array();
             if(!empty($thumb))
             {
-
-                foreach($thumb as $row1 => $value1)
-                {
-                    if($row1==0)
-                    {
-                        $data_request[$row]['image_file_all']   = '<a target="_blank" href="'.base_url('MyImage/show/').'ori/img'.$value1['image_file_id'].'.jpg" class="label label-warning" href="">Show Ori</a><br>';
-                        $data_request[$row]['image_thumb']      = '<img src="'.base_url('MyImage/show/').'ori/img'.$value1['image_file_id'].'.jpg" width="100" height="100">';
-                    }else
-                    {
-                        $data_request[$row]['image_file_all'] .= '<a target="_blank" href="'.base_url('MyImage/show/').$value1['image_thumbnail_size'].'/img'.$value1['image_file_id'].'.jpg" class="label label-warning" href="">Show Thumb '.$row1.'</a><br>';
-                    }
-                }
+                $data_request[$row]['image_file_all']   = '<a target="_blank" href="'.base_url('image/show/showImage/').$value['image_file_id'].'" class="label label-warning" href="">Show Ori</a><br>';
+                $data_request[$row]['image_thumb']      = '<img src="'.base_url('MyImage/show/').'ori/img'.$value['image_file_id'].'.jpg" width="100" height="100">';
             }
             else
             {
-                $data_request[$row]['image_thumb'] = '<img src="#" width="100" height="100">';
+                $data_request[$row]['image_file_all'] = '<img src="#" width="100" height="100">';
             }
 
             $data_request[$row]['actions'] = '<a class="btn btn-sm btn-danger"><i class="fa fa-trash"></i> Hapus</a>';
@@ -134,6 +124,17 @@ class Mdl_image extends CI_Model
         $insertThumb        = $this->insertImageThumb($data2,$data['name']);
 
         return $insertThumb;
+    }
+
+    function showImageAll($id)
+    {
+        $res = $this->db->where(array('image_file_id'=>$id))->order_by('image_thumbnail_id','asc')->get($this->table['thumb'])->result();
+        $data = array();
+        foreach($res as $key => $val):
+            $img = $this->getDetail($val->image_thumbnail_size, $val->image_file_id);
+            $data[] = array('img'=>$img);
+        endforeach;
+        return $data;
     }
     
 }
