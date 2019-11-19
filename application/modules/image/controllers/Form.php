@@ -42,8 +42,9 @@ class Form extends CI_Controller
     {
         $headers = $this->input->request_headers();
         $post = $this->input->post();
-        
-        $cekAPIKEY = cekAPIKEY($headers['api_key']);
+
+        $key = empty($headers['api_key'])?"-":$headers['api_key'];
+        $cekAPIKEY = cekAPIKEY($key);
         $updateBy  = empty($post['update_by'])?0:$post['update_by'];
 
         if($cekAPIKEY == false)

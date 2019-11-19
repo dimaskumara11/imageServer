@@ -3,11 +3,11 @@ function cekAPIKEY($apiKey="")
 {
     if($apiKey == "dimaskumara")
     {
-        return TRUE;
+        return 2;
     }
     else
     {
-        return FALSE;
+        return 0;
     }
 }
 
