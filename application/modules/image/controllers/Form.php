@@ -48,15 +48,24 @@ class Form extends CI_Controller
 
         if($cekAPIKEY == false)
         {
-            echo "api key tidak valid";
+            $this->output
+                ->set_content_type('application/json')
+                ->set_header('HTTP/1.0 401 INVALID')
+                ->set_output(json_encode(array('message' => 'api key tidak valid')));
         }
         elseif(empty($post['folderImage']))
         {
-            echo "folder belum di masukkan";
+            $this->output
+                ->set_content_type('application/json')
+                ->set_header('HTTP/1.0 402 NOT FOUND')
+                ->set_output(json_encode(array('message' => 'folder belum di masukkan')));
         }
         elseif(empty($_FILES['image_file']['name']))
         {
-            echo "file belum di masukkan";
+            $this->output
+                ->set_content_type('application/json')
+                ->set_header('HTTP/1.0 403 NOT FOUND')
+                ->set_output(json_encode(array('message' => 'file belum di masukkan')));
         }
         else
         {
@@ -81,7 +90,7 @@ class Form extends CI_Controller
             $config['upload_path']          = $path;
             $config['file_name']            = date('Ymd_s').'_'.$_FILES['image_file']['name'];
             $config['allowed_types']        = 'jpeg|jpg|png';
-            $config['max_size']             = 3000;
+            $config['max_size']             = 2000;
             $config['max_width']            = 2000;
             $config['max_height']           = 2000;
     
@@ -90,8 +99,32 @@ class Form extends CI_Controller
             if ( ! $this->upload->do_upload('image_file'))
             {
                     $error = array('error' => $this->upload->display_errors());
-                    print_r($error);die;
-                    $this->load->view('upload_form', $error);
+                    switch($error['error'])
+                    {
+                        case "<p>The filetype you are attempting to upload is not allowed.</p>":
+                            $this->output
+                                ->set_content_type('application/json')
+                                ->set_header('HTTP/1.0 404 INVALID')
+                                ->set_output(json_encode(array('message' => 'tipe file tidak cocok, hanya : jpeg, jpg, png')));
+                        break;
+                        case "<p>The file you are attempting to upload is larger than the permitted size.</p>":
+                            $this->output
+                                ->set_content_type('application/json')
+                                ->set_header('HTTP/1.0 405 INVALID')
+                                ->set_output(json_encode(array('message' => 'ukuran file terlalu besar (kilobytes)')));
+                        break;
+                        case "<p>The image you are attempting to upload doesn't fit into the allowed dimensions.</p>":
+                            $this->output
+                                ->set_content_type('application/json')
+                                ->set_header('HTTP/1.0 406 INVALID')
+                                ->set_output(json_encode(array('message' => 'dimensi file terlalu besar')));
+                        break;
+                        default:
+                            $this->output
+                                ->set_content_type('application/json')
+                                ->set_header('HTTP/1.0 410 INVALID')
+                                ->set_output(json_encode(array('message' => $error['error'])));
+                    }
             }
             else
             {
@@ -152,12 +185,14 @@ class Form extends CI_Controller
                     $imageFileID => $imageSize
                 );
 
-                $this->load->driver('cache', array('adapter' => 'apc', 'backup' => 'file'));
+                $this->load->driver('cache', array('adapter' => 'memcached', 'backup' => 'file'));
+                // Save into the cache for 2 weeks
+                $this->cache->save($imageFileID, $dataCache, 1209600);
 
-                // Save into the cache for 5 minutes
-                $this->cache->save($imageFileID, $dataCache, 300);
-
-                echo "sukses";
+                $this->output
+                    ->set_content_type('application/json')
+                    ->set_header('HTTP/1.0 200 OK')
+                    ->set_output(json_encode(array('message' => 'berhasil terupload')));
             }
         }
 

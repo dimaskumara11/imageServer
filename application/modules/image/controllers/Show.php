@@ -11,21 +11,6 @@ class Show extends CI_Controller
 
 	public function index()
 	{
-        // $this->load->driver('cache', array('adapter' => 'apc', 'backup' => 'file'));
-
-        // if ( ! $foo = $this->cache->get('foo'))
-        // {
-        //     $foo = array('dimas'=>'kumara1');
-
-        //     // Save into the cache for 5 minutes
-        //     $this->cache->save('foo', $foo, 300);
-        // }
-        // else
-        // {
-        //     print_r($this->cache->get(27));
-        // }
-        // die;
-
         $data = array(
             'PAGE_TITLE'    => 'List Image',
             'BASE_URL'      => base_url(), //tanpa file

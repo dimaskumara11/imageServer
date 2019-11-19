@@ -16,21 +16,10 @@
       <!-- sidebar menu: : style can be found in sidebar.less -->
       <ul class="sidebar-menu">
         <li class="header">MENU UTAMA</li>
-        <li class="active">
-          <a href="../widgets.html">
-            <i class="fa fa-th"></i> <span>Dashboard</span>
-          </a>
-        </li>
         <li class="treeview">
           <a href="{BASE_URL}image/show">
             <i class="fa fa-list"></i>
             <span>List Image</span>
-          </a>
-        </li>
-        <li class="treeview">
-          <a href="{BASE_URL}image/form">
-            <i class="fa fa-edit"></i>
-            <span>Input Image</span>
           </a>
         </li>
         <li class="header">OTHERS</li>
