@@ -66,6 +66,7 @@ class Mdl_image extends CI_Model
         ->where($this->table['thumb'].'.image_file_id',$id)
         ->where('image_thumbnail_size',$size)
         ->get($this->table['thumb'])->row_array();
+        // print_r($data);die;
 
         if($size != "ori")
         {
@@ -83,11 +84,18 @@ class Mdl_image extends CI_Model
         $data =  $this->db->join($this->table['image'],$this->table['image'].'.image_file_id ='.$this->table['thumb'].'.image_file_id','left')
         ->where($this->table['thumb'].'.image_file_id',$id)
         ->get($this->table['thumb'])->result();
+        // print_r($data);die;
         
         $dataCache = array();
         foreach($data as $key => $val)
         {
-            $dataCache[$val->image_file_id][$val->image_thumbnail_size] = "/$val->image_file_title/".$val->image_thumbnail_size.'/'.$val->image_file_name;
+            if($size != "ori")
+            {
+                $fileName = $val->image_file_name;
+                $fileName = explode('.',$fileName);
+                $image_file_name = $fileName[0].'_thumb.'.$fileName[1];
+            }
+            $dataCache[$val->image_file_id][$val->image_thumbnail_size] = "/$val->image_file_title/".$val->image_thumbnail_size.'/'.$image_file_name;
         }
         
         $res = array(
