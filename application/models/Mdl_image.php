@@ -89,12 +89,15 @@ class Mdl_image extends CI_Model
         $dataCache = array();
         foreach($data as $key => $val)
         {
-            $image_file_name = $val->image_file_name;
-            if($size != "ori")
+            if($val->image_thumbnail_size != "ori")
             {
                 $fileName = $val->image_file_name;
                 $fileName = explode('.',$fileName);
                 $image_file_name = $fileName[0].'_thumb.'.$fileName[1];
+            }
+            else
+            {
+                $image_file_name = $val->image_file_name;
             }
             $dataCache[$val->image_file_id][$val->image_thumbnail_size] = "/$val->image_file_title/".$val->image_thumbnail_size.'/'.$image_file_name;
         }
