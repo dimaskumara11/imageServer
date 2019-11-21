@@ -89,6 +89,7 @@ class Mdl_image extends CI_Model
         $dataCache = array();
         foreach($data as $key => $val)
         {
+            $image_file_name = $val->image_file_name;
             if($size != "ori")
             {
                 $fileName = $val->image_file_name;
