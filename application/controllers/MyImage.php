@@ -26,6 +26,7 @@ class MyImage extends CI_Controller
         if ($dataCache = $this->cache->get( empty($idImage[1])?0: $idImage[1]))
         {
 			$cekImage = base_url().'images'.$dataCache[$idImage[1]][$size];
+			// print_r($dataCache);die;
 			$this->output
 					->set_content_type('jpeg') // You could also use ".jpeg" which will have the full stop removed before looking in config/mimes.php
 					->set_output(file_get_contents($cekImage));

@@ -182,18 +182,19 @@ class Form extends CI_Controller
                     
                 endforeach;
                 
-                $dataCache = array(
-                    $imageFileID => $imageSize
-                );
-
-                $this->load->driver('cache', array('adapter' => 'memcached', 'backup' => 'file'));
-                // Save into the cache for 2 weeks
-                $this->cache->save($imageFileID, $dataCache, 1209600);
-
                 $this->output
                     ->set_content_type('application/json')
                     ->set_header('HTTP/1.0 200 OK')
-                    ->set_output(json_encode(array('message' => 'berhasil terupload')));
+                    ->set_output(
+                        json_encode(
+                            array(
+                                'message' => 'berhasil terupload',
+                                'data'    => array(
+                                    'image_file' => 'img'.$imageFileID.'jpg'
+                                )
+                            )
+                        )
+                    );
             }
         }
 
