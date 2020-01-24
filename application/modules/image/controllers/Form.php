@@ -190,7 +190,8 @@ class Form extends CI_Controller
                             array(
                                 'message' => 'berhasil terupload',
                                 'data'    => array(
-                                    'image_file' => 'img'.$imageFileID.'.jpg'
+                                    'image_file' => 'img'.$imageFileID.'.jpg',
+                                'status'  => 1
                                 )
                             )
                         )
