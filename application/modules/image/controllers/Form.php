@@ -91,7 +91,7 @@ class Form extends CI_Controller
             $config['upload_path']          = $path;
             $config['file_name']            = date('Ymd_s').'_'.$_FILES['image_file']['name'];
             $config['allowed_types']        = 'jpeg|jpg|png';
-            $config['max_size']             = 2000;
+            $config['max_size']             = 10000;
             $config['max_width']            = 2000;
             $config['max_height']           = 2000;
     
@@ -106,25 +106,25 @@ class Form extends CI_Controller
                             $this->output
                                 ->set_content_type('application/json')
                                 ->set_header('HTTP/1.0 404 INVALID')
-                                ->set_output(json_encode(array('message' => 'tipe file tidak cocok, hanya : jpeg, jpg, png')));
+                                ->set_output(json_encode(array('message' => 'tipe file tidak cocok, hanya : jpeg, jpg, png','status' => 0)));
                         break;
                         case "<p>The file you are attempting to upload is larger than the permitted size.</p>":
                             $this->output
                                 ->set_content_type('application/json')
                                 ->set_header('HTTP/1.0 405 INVALID')
-                                ->set_output(json_encode(array('message' => 'ukuran file terlalu besar (kilobytes)')));
+                                ->set_output(json_encode(array('message' => 'ukuran file terlalu besar (kilobytes)', 'status' => 0)));
                         break;
                         case "<p>The image you are attempting to upload doesn't fit into the allowed dimensions.</p>":
                             $this->output
                                 ->set_content_type('application/json')
                                 ->set_header('HTTP/1.0 406 INVALID')
-                                ->set_output(json_encode(array('message' => 'dimensi file terlalu besar')));
+                                ->set_output(json_encode(array('message' => 'dimensi file terlalu besar', 'status' => 0)));
                         break;
                         default:
                             $this->output
                                 ->set_content_type('application/json')
                                 ->set_header('HTTP/1.0 410 INVALID')
-                                ->set_output(json_encode(array('message' => $error['error'])));
+                                ->set_output(json_encode(array('message' => $error['error'], 'status' => 0)));
                     }
             }
             else
